@@ -3,10 +3,10 @@ package com.example.raspisanie.Model
 import com.google.gson.annotations.SerializedName
 
 data class Offices(
-    @SerializedName("OfficeID") val id:Int,
-    val NumberSeats: String
+    @SerializedName("officeId") val id:Int,
+    val numberSeats: Int
 ){
     override fun toString(): String {
-        return NumberSeats
+        return id.toString()
     }
 }

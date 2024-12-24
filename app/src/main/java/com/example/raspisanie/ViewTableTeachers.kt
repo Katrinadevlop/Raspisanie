@@ -1,13 +1,18 @@
 package com.example.raspisanie
 
+import android.annotation.SuppressLint
 import android.os.Bundle
+import android.util.Log
+import android.view.Gravity
+import android.widget.TableLayout
+import android.widget.TableRow
+import android.widget.TextView
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
-import okhttp3.OkHttpClient
-import retrofit2.Retrofit
-import retrofit2.converter.gson.GsonConverterFactory
+import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.launch
 
 class ViewTableTeachers : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -20,16 +25,57 @@ class ViewTableTeachers : AppCompatActivity() {
             insets
         }
 
-        val client = OkHttpClient.Builder()
-            .hostnameVerifier { _, _ -> true }
-            .build()
+        lifecycleScope.launch {
+            loadData()
+        }
+    }
 
-        val retrofit = Retrofit.Builder()
-            .baseUrl("https://192.168.116.17:7150/")
-            .client(client)
-            .addConverterFactory(GsonConverterFactory.create())
-            .build()
+    @SuppressLint("SetTextI18n")
+    private suspend fun loadData(){
+        try{
+            val groups = OkHttp().apiService.getGroups()
+            val lessons = OkHttp().apiService.getLessons()
+            val offices = OkHttp().apiService.getOffices()
+            val subjects = OkHttp().apiService.getSubjects()
+            val teachers = OkHttp().apiService.getTeachers()
 
+            val tableLayout = findViewById<TableLayout>(R.id.tableLayout)
 
+            for (teacher in teachers) {
+                val row = TableRow(this)
+
+                val groupTextView = TextView(this).apply {
+                    text = teacher.toString()
+                    textSize = 16f
+                    setPadding(0, 16, 16, 16)
+                    gravity = Gravity.CENTER
+                }
+
+                row.addView(groupTextView)
+
+                val scheduleInfo = StringBuilder()
+                for (lesson in lessons) {
+                    if (lesson.teacherId == teacher.id) {
+                        val office = offices.find { it.id == lesson.officeId } ?: "Неизвестная группа"
+                        val subject = subjects.find { it.id == lesson.subjectId } ?: "Неизвестный предмет"
+                        val group = groups.find { it.id == lesson.groupId } ?: "Неизвестный преподаватель"
+                        scheduleInfo.append("$office\n$subject\n$group\n\n")
+                    }
+                }
+
+                val scheduleTextView = TextView(this).apply {
+                    text = scheduleInfo.toString()
+                    textSize = 14f
+                    setPadding(16, 16, 16, 16)
+                    gravity = Gravity.START
+                }
+                row.addView(scheduleTextView)
+                tableLayout.addView(row)
+            }
+        }
+        catch (e:Exception)
+        {
+            Log.e("Api error", "$e")
+        }
     }
 }

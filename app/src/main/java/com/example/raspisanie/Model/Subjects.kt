@@ -3,16 +3,16 @@ package com.example.raspisanie.Model
 import com.google.gson.annotations.SerializedName
 
 data class Subjects(
-    @SerializedName("SubjectID") val id:Int,
-    val SubjectsNumber: String,
-    val HoursPerLecture:Int,
-    val HoursPerPractic:Int,
-    val HoursPerLaborat:Int,
-    val HoursPerConsult:Int,
-    val HoursPerExam:Int,
-    val Subjectscol: String
+    @SerializedName("subjectId") val id:Int,
+    val subjectName: String,
+    val hoursPerLecture:Int,
+    val hoursPerPractic:Int,
+    val hoursPerLaborat:Int,
+    val hoursPerConsult:Int,
+    val hoursPerExam:Int,
+    val subjectscol: String
 ){
     override fun toString(): String {
-        return SubjectsNumber
+        return subjectName
     }
 }

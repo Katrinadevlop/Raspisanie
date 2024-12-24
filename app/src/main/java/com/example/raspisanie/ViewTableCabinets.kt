@@ -1,5 +1,6 @@
 package com.example.raspisanie
 
+import android.annotation.SuppressLint
 import android.os.Bundle
 import android.util.Log
 import android.view.Gravity
@@ -11,58 +12,9 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.lifecycle.lifecycleScope
-import com.example.raspisanie.Model.Day
-import com.example.raspisanie.Model.Groups
-import com.example.raspisanie.Model.LessonOrder
-import com.example.raspisanie.Model.LessonTypes
-import com.example.raspisanie.Model.Lessons
-import com.example.raspisanie.Model.Offices
-import com.example.raspisanie.Model.Semesters
-import com.example.raspisanie.Model.Subjects
-import com.example.raspisanie.Model.Teachers
-import com.example.raspisanie.Model.TypeOffices
-import com.example.raspisanie.Model.Weeks
 import kotlinx.coroutines.launch
-import retrofit2.Retrofit
-import retrofit2.converter.gson.GsonConverterFactory
-import retrofit2.http.GET
 
 class ViewTableCabinets : AppCompatActivity() {
-
-    interface ApiService{
-        @GET("day/get/")
-        suspend fun getDay():List<Day>
-
-        @GET("groups/get/")
-        suspend fun getGroups():List<Groups>
-
-        @GET("lessonOrder/get/")
-        suspend fun getLessonOrder():List<LessonOrder>
-
-        @GET("lessons/get/")
-        suspend fun getLessons():List<Lessons>
-
-        @GET("lessonTypes/get/")
-        suspend fun getLessonTypes():List<LessonTypes>
-
-        @GET("offices/get/")
-        suspend fun getOffices():List<Offices>
-
-        @GET("semesters/get/")
-        suspend fun getSemesters():List<Semesters>
-
-        @GET("subjects/get/")
-        suspend fun getSubjects():List<Subjects>
-
-        @GET("teachers/get/")
-        suspend fun getTeachers():List<Teachers>
-
-        @GET("typeOffices/get/")
-        suspend fun getTypeOffices():List<TypeOffices>
-
-        @GET("weeks/get/")
-        suspend fun getWeeks():List<Weeks>
-    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -73,25 +25,20 @@ class ViewTableCabinets : AppCompatActivity() {
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
             insets
         }
+
         lifecycleScope.launch {
             loadData()
         }
     }
 
+    @SuppressLint("SetTextI18n")
     private suspend fun loadData(){
-        val retrofit = Retrofit.Builder()
-            .baseUrl("http://192.168.140.17:5016/api/lessons/get/")
-            .addConverterFactory(GsonConverterFactory.create())
-            .build()
-
-        val apiService = retrofit.create(ApiService::class.java)
-
         try {
-            val group = apiService.getGroups()
-            val lessons = apiService.getLessons()
-            val offices = apiService.getOffices()
-            val subjects = apiService.getSubjects()
-            val teachers = apiService.getTeachers()
+            val teachers = OkHttp().apiService.getTeachers()
+            val group = OkHttp().apiService.getGroups()
+            val lessons = OkHttp().apiService.getLessons()
+            val offices = OkHttp().apiService.getOffices()
+            val subjects = OkHttp().apiService.getSubjects()
 
             val tableLayout = findViewById<TableLayout>(R.id.tableLayout)
 
@@ -99,7 +46,7 @@ class ViewTableCabinets : AppCompatActivity() {
                 val row = TableRow(this)
 
                 val officeTextView = TextView(this).apply {
-                    text = office.NumberSeats
+                    text = office.id.toString()
                     textSize = 16f
                     setPadding(16, 16, 16, 16)
                     gravity = Gravity.CENTER
@@ -109,13 +56,11 @@ class ViewTableCabinets : AppCompatActivity() {
 
                 val scheduleInfo = StringBuilder()
                 for (lesson in lessons) {
-                    if (lesson.OfficeID == office.id) {
-                        val group = group.find { it.id == lesson.GroupID } ?: "Неизвестная группа"
-                        val subject = subjects.find { it.id == lesson.SubjectID } ?: "Неизвестный предмет"
-                        val teacher = teachers.find { it.id == lesson.TeacherID } ?: "Неизвестный преподаватель"
+                    if (lesson.officeId == office.id) {
+                        val group = group.find { it.id == lesson.groupId } ?: "Неизвестная группа"
+                        val subject = subjects.find { it.id == lesson.subjectId } ?: "Неизвестный предмет"
+                        val teacher = teachers.find { it.id == lesson.teacherId } ?: "Неизвестный преподаватель"
                         scheduleInfo.append("$group\n$subject\n$teacher\n\n")
-                        var txt = findViewById<TextView>(R.id.textView)
-                        txt.text = "$group\n$subject\n$teacher\n\n"
                     }
                 }
 
