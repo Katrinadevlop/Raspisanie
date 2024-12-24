@@ -4,6 +4,8 @@ import android.annotation.SuppressLint
 import android.os.Bundle
 import android.util.Log
 import android.view.Gravity
+import android.widget.ArrayAdapter
+import android.widget.Spinner
 import android.widget.TableLayout
 import android.widget.TableRow
 import android.widget.TextView
@@ -12,6 +14,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.lifecycle.lifecycleScope
+import com.example.raspisanie.Model.Day
 import kotlinx.coroutines.launch
 
 class ViewTableCabinets : AppCompatActivity() {
@@ -39,8 +42,15 @@ class ViewTableCabinets : AppCompatActivity() {
             val lessons = OkHttp().apiService.getLessons()
             val offices = OkHttp().apiService.getOffices()
             val subjects = OkHttp().apiService.getSubjects()
+            val days = OkHttp().apiService.getDay()
 
             val tableLayout = findViewById<TableLayout>(R.id.tableLayout)
+
+            val day = days.map { it.dayName }
+            val spinner = findViewById<Spinner>(R.id.spinner)
+            val adapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, day)
+            adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+            spinner.adapter = adapter
 
             for (office in offices) {
                 val row = TableRow(this)
@@ -55,11 +65,12 @@ class ViewTableCabinets : AppCompatActivity() {
                 row.addView(officeTextView)
 
                 val scheduleInfo = StringBuilder()
-                for (lesson in lessons) {
-                    if (lesson.officeId == office.id) {
-                        val group = group.find { it.id == lesson.groupId } ?: "Неизвестная группа"
-                        val subject = subjects.find { it.id == lesson.subjectId } ?: "Неизвестный предмет"
-                        val teacher = teachers.find { it.id == lesson.teacherId } ?: "Неизвестный преподаватель"
+
+                for (lessonInOffice in lessons) {
+                    if (lessonInOffice.officeId == office.id) {
+                        val group = group.find { it.id == lessonInOffice.groupId } ?: "Неизвестная группа"
+                        val subject = subjects.find { it.id == lessonInOffice.subjectId } ?: "Неизвестный предмет"
+                        val teacher = teachers.find { it.id == lessonInOffice.teacherId } ?: "Неизвестный преподаватель"
                         scheduleInfo.append("$group\n$subject\n$teacher\n\n")
                     }
                 }

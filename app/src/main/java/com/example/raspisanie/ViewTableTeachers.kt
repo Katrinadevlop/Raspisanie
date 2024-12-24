@@ -4,6 +4,8 @@ import android.annotation.SuppressLint
 import android.os.Bundle
 import android.util.Log
 import android.view.Gravity
+import android.widget.ArrayAdapter
+import android.widget.Spinner
 import android.widget.TableLayout
 import android.widget.TableRow
 import android.widget.TextView
@@ -38,8 +40,15 @@ class ViewTableTeachers : AppCompatActivity() {
             val offices = OkHttp().apiService.getOffices()
             val subjects = OkHttp().apiService.getSubjects()
             val teachers = OkHttp().apiService.getTeachers()
+            val days = OkHttp().apiService.getDay()
 
             val tableLayout = findViewById<TableLayout>(R.id.tableLayout)
+
+            val day = days.map { it.dayName }
+            val spinner = findViewById<Spinner>(R.id.spinner)
+            val adapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, day)
+            adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+            spinner.adapter = adapter
 
             for (teacher in teachers) {
                 val row = TableRow(this)
